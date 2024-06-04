@@ -7,6 +7,7 @@ export λ238U, λ235U
 const λ235U_jaffey = log(2)/(7.0381e2 ± 0.0048e2) # Jaffey, 1/Myr
 export λ235U_jaffey
 
+const R238_235 = 137.818 ± 0.0225 #U238/U235 from Hiess et al 2012
 """
 ```
 struct UPbAnalysis{T} <: Analysis{T}
