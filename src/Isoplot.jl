@@ -5,9 +5,11 @@ module Isoplot
     using LinearAlgebra
     using Distributions
     using Measurements
+    using NLsolve
     using Plots: Shape, plot, plot!
     import Plots
     export plot, plot!
+    
 
     # A type alias for array-ish types
     const Collection{T} = Union{AbstractArray{T}, NTuple{N,T}} where N
