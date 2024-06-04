@@ -6,9 +6,7 @@ module Isoplot
     using Distributions
     using Measurements
     using NLsolve
-    using Plots: Shape, plot, plot!
-    import Plots
-    export plot, plot!
+    
     
 
     # A type alias for array-ish types
@@ -19,7 +17,7 @@ module Isoplot
 
     # Abstract types which we'll subtype later
     include("analysis.jl")
-    export age, ratio, ellipse, CI, Age, Interval
+    export age, ratio, CI, Age, Interval, Ellipse
 
     include("regression.jl")
     export wmean, awmean, gwmean, distwmean, mswd
@@ -39,8 +37,8 @@ module Isoplot
     include("K-Ar.jl")
     export UThAnalysis, ReOsAnalysis, LuHfAnalysis, SmNdAnalysis, RbSrAnalysis
 
-    include("plotting.jl")
-    export concordiacurve!, concordialine, concordialine!,
+    include("generic_plotting.jl")
+    export concordiacurve, concordiacurve!, concordialine, concordialine!,
     rankorder, rankorder!
 
     include("metropolis.jl")
@@ -53,5 +51,8 @@ module Isoplot
     MeltsZirconDistribution, MeltsVolcanicZirconDistribution
 
     include("show.jl")
+
+    #extra exports for pkg extenstions
+    export Data, Analysis, Collection, val, err, vminimum, vmaximum, datalimits
 
 end # module Isoplot
