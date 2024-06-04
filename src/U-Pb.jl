@@ -41,11 +41,6 @@ struct UPbAnalysis{T} <: Analysis{T}
     Σ::Matrix{T}
 end
 
-struct UPbPbAnalysis{T} <: Analysis{T}
-    μ::Vector{T}
-    σ::Vector{T}
-    Σ::Matrix{T}
-end
 
 """
 ```julia
@@ -116,4 +111,37 @@ function stacey_kramers(t)
     r74 -= ((exp(val(λ238U)*t)-1) - (exp(val(λ238U)*t0)-1)) * U_Pb/137.818
 
     return r64, r74
+end
+
+struct UPbPbAnalysis{T} <: Analysis{T}
+    μ::Vector{T}
+    σ::Vector{T}
+    Σ::Matrix{T}
+end
+
+function UPbPbAnalysis( r²⁰⁶Pb²³⁸U::Number, σ²⁰⁶Pb²³⁸U::Number, r²⁰⁷Pb²⁰⁶Pb::Number, σ²⁰⁷Pb²⁰⁶Pb::Number, correlation::Number; T=Float64)
+    cov = σ²⁰⁶Pb²³⁸U *  σ²⁰⁷Pb²⁰⁶Pb * correlation
+    Σ = T[σ²⁰⁶Pb²³⁸U^2  cov
+          cov   σ²⁰⁷Pb²⁰⁶Pb^2]
+    σ = T[σ²⁰⁶Pb²³⁸U,  σ²⁰⁷Pb²⁰⁶Pb]
+    μ = T[r²⁰⁶Pb²³⁸U, r²⁰⁷Pb²⁰⁶Pb]
+    UPbAnalysis(μ, σ, Σ)
+end
+UPbPbAnalysis(μ::Vector{T}, Σ::Matrix{T}) where {T} = UPbPbAnalysis{T}(μ, sqrt.(diag(Σ)), Σ)
+
+ratioPbPb(age::Number,λ235::Number,λ238::Number) = 1/R238_235*(exp(λ235*age)-1)/(exp(λ238*age)-1)
+
+
+
+function age68(d::UPbPbAnalysis)
+    log(1 + d.μ[1] ± d.σ[1])/λ238U
+end
+
+#This doesnt work yet
+function age67(d::UPbPbAnalysis,tmin::Number,tmax::Number)
+    
+    agefun(ages) = ratioPbPb.(age,λ235U,λ238U) .- d.μ[2]
+    sol = nlsolve(agefun,d.μ[2],[tmin,tmax])
+    return sol.zero[1]
+    # r238_235*(d.μ[2]±d.σ[2])
 end
