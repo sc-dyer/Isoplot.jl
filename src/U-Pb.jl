@@ -41,6 +41,12 @@ struct UPbAnalysis{T} <: Analysis{T}
     Σ::Matrix{T}
 end
 
+struct UPbPbAnalysis{T} <: Analysis{T}
+    μ::Vector{T}
+    σ::Vector{T}
+    Σ::Matrix{T}
+end
+
 """
 ```julia
 UPbAnalysis(r²⁰⁷Pb²³⁵U, σ²⁰⁷Pb²³⁵U, r²⁰⁶Pb²³⁸U, σ²⁰⁶Pb²³⁸U, correlation; T=Float64)
