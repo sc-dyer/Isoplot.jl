@@ -65,22 +65,43 @@ end
 UPbAnalysis(μ::Vector{T}, Σ::Matrix{T}) where {T} = UPbAnalysis{T}(μ, sqrt.(diag(Σ)), Σ)
 
 # 75 and 68 ages
-function age(d::UPbAnalysis)
-    a75 = log(1 + d.μ[1] ± d.σ[1])/λ235U
-    a68 = log(1 + d.μ[2] ± d.σ[2])/λ238U
+function age(d::UPbAnalysis;decayconstant235 = :schoene, decayconstant238 =:jaffey)
+    a75 = age75(d,decayconstant = decayconstant235)
+    a68 = age68(d,decayconstant = decayconstant238)
     return a75, a68
 end
 
-function age68(d::UPbAnalysis)
-    log(1 + d.μ[2] ± d.σ[2])/λ238U
+function age68(d::UPbAnalysis;decayconstant = :jaffey)
+    λ = 0
+    if decayconstant == :jaffey
+        λ = λ238U
+    elseif typeof(decayconstant) <: Number
+        λ = decayconstant
+    else
+        throw(ArgumentError("$decayconstant is not a valid argument for decayconstant, please refer to documentation for options"))
+    end
+    
+    log(1 + d.μ[2] ± d.σ[2])/λ
 end
-function age75(d::UPbAnalysis)
-    log(1 + d.μ[1] ± d.σ[1])/λ235U
+function age75(d::UPbAnalysis;decayconstant = :schoene)
+    λ = 0
+    if decayconstant == :jaffey
+        λ = λ235U_jaffey
+    elseif decayconstant == :schoene
+        λ = λ235U
+    elseif decayconstant == :schoene_internal
+        λ = λ235U_internal
+    elseif typeof(decayconstant) <: Number
+        λ = decayconstant
+    else
+        throw(ArgumentError("$decayconstant is not a valid argument for decayconstant, please refer to documentation for options"))
+    end
+    log(1 + d.μ[1] ± d.σ[1])/λ
 end
 # Percent discordance
-function discordance(d::UPbAnalysis)
-    μ75 = log(1 + d.μ[1])/λ235U.val
-    μ68 = log(1 + d.μ[2])/λ238U.val
+function discordance(d::UPbAnalysis;decayconstant235 = :schoene, decayconstant238 =:jaffey)
+    μ75 = val(age75(d,decayconstant=decayconstant235))
+    μ68 = val(age68(d,decayconstant=decayconstant238))
     return (μ75 - μ68) / μ75 * 100
 end
 
