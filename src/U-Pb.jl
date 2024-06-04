@@ -125,11 +125,11 @@ function UPbPbAnalysis( r²⁰⁶Pb²³⁸U::Number, σ²⁰⁶Pb²³⁸U::Numbe
           cov   σ²⁰⁷Pb²⁰⁶Pb^2]
     σ = T[σ²⁰⁶Pb²³⁸U,  σ²⁰⁷Pb²⁰⁶Pb]
     μ = T[r²⁰⁶Pb²³⁸U, r²⁰⁷Pb²⁰⁶Pb]
-    UPbAnalysis(μ, σ, Σ)
+    UPbPbAnalysis(μ, σ, Σ)
 end
 UPbPbAnalysis(μ::Vector{T}, Σ::Matrix{T}) where {T} = UPbPbAnalysis{T}(μ, sqrt.(diag(Σ)), Σ)
 
-ratioPbPb(age::Number,λ235::Number,λ238::Number) = 1/R238_235*(exp(λ235*age)-1)/(exp(λ238*age)-1)
+ratioPbPb(age,λ235,λ238) = 1/R238_235.val*(exp(λ235*age)-1)/(exp(λ238*age)-1)
 
 
 
@@ -137,11 +137,11 @@ function age68(d::UPbPbAnalysis)
     log(1 + d.μ[1] ± d.σ[1])/λ238U
 end
 
-#This doesnt work yet
-function age67(d::UPbPbAnalysis,tmin::Number,tmax::Number)
+
+function age76(d::UPbPbAnalysis,tmin,tmax)
     
-    agefun(ages) = ratioPbPb.(age,λ235U,λ238U) .- d.μ[2]
-    sol = nlsolve(agefun,d.μ[2],[tmin,tmax])
+    agefun(ages) = ratioPbPb.(ages,λ235U_jaffey.val,λ238U.val) .- d.μ[2]
+    sol = nlsolve(agefun,[tmin,tmax])
     return sol.zero[1]
     # r238_235*(d.μ[2]±d.σ[2])
 end
