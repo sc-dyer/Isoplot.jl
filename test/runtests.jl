@@ -113,6 +113,38 @@ module BaseTests
         @test stacey_kramers(4567) == (9.314476625036953, 12.984667029161916)
         @test stacey_kramers(5000) === (NaN, NaN)
 
+        #U-Pb-Pb tests
+        #These values dont make sense but its easier to use them 
+        r68 = 22.6602
+        σ68 = 0.017516107998
+        r76 = 0.408643
+        σ76 = 0.0001716486532565
+        corr = 0.831838
+        d1 = UPbPbAnalysis(r68, σ68, r76, σ76, corr)
+        d2 = UPbPbAnalysis([22.6602, 0.408643], [0.00030681403939759964 2.501017729814154e-6; 2.501017729814154e-6 2.9463260164770177e-8])
+        d3 = UPbPbAnalysis([22.6602, 0.408643], [0.017516107998, 0.0001716486532565], [0.00030681403939759964 2.501017729814154e-6; 2.501017729814154e-6 2.9463260164770177e-8])
+        @test d1 isa UPbPbAnalysis{Float64}
+        @test d2 isa UPbPbAnalysis{Float64}
+        @test d3 isa UPbPbAnalysis{Float64}
+        @test d1.μ ≈ d2.μ ≈ d3.μ
+        @test d1.σ ≈ d2.σ ≈ d3.σ
+        @test d1.Σ ≈ d2.Σ ≈ d3.Σ
+        @test !isnan(d1)
+
+        #Now use reasonable values
+        r68 = 0.182702984
+        σ68 = 0.000647166
+        r76 = 0.07492019
+        σ76 = 0.000253515
+        corr = 0.066087191
+        d1 = UPbPbAnalysis(r68, σ68, r76, σ76, corr)
+        a68,a76 = age(d1,900.0,1900.0,decayconstant235=:jaffey)
+        @test a68.val ≈ 1081.7209637618819
+        @test a68.err ≈ 3.5749472135422073
+        @test a76 ≈ 1065.4640832279572
+        
+        
+
     end
     @testset "Other systems" begin
         μ, σ = rand(2), rand(2)

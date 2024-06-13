@@ -78,7 +78,7 @@ function age68(d::UPbAnalysis;decayconstant = :jaffey)
     elseif typeof(decayconstant) <: Number
         λ = decayconstant
     else
-        throw(ArgumentError("$decayconstant is not a valid argument for decayconstant, please refer to documentation for options"))
+        throw(ArgumentError("'$decayconstant' is not a valid argument for 'decayconstant', please refer to documentation for options"))
     end
     
     log(1 + d.μ[2] ± d.σ[2])/λ
@@ -94,7 +94,7 @@ function age75(d::UPbAnalysis;decayconstant = :schoene)
     elseif typeof(decayconstant) <: Number
         λ = decayconstant
     else
-        throw(ArgumentError("$decayconstant is not a valid argument for decayconstant, please refer to documentation for options"))
+        throw(ArgumentError("'$decayconstant' is not a valid argument for 'decayconstant', please refer to documentation for options"))
     end
     log(1 + d.μ[1] ± d.σ[1])/λ
 end
@@ -140,7 +140,7 @@ struct UPbPbAnalysis{T} <: Analysis{T}
     Σ::Matrix{T}
 end
 
-function UPbPbAnalysis( r²⁰⁶Pb²³⁸U::Number, σ²⁰⁶Pb²³⁸U::Number, r²⁰⁷Pb²⁰⁶Pb::Number, σ²⁰⁷Pb²⁰⁶Pb::Number, correlation::Number; T=Float64)
+function UPbPbAnalysis(r²⁰⁶Pb²³⁸U::Number, σ²⁰⁶Pb²³⁸U::Number, r²⁰⁷Pb²⁰⁶Pb::Number, σ²⁰⁷Pb²⁰⁶Pb::Number, correlation::Number; T=Float64)
     cov = σ²⁰⁶Pb²³⁸U *  σ²⁰⁷Pb²⁰⁶Pb * correlation
     Σ = T[σ²⁰⁶Pb²³⁸U^2  cov
           cov   σ²⁰⁷Pb²⁰⁶Pb^2]
@@ -150,19 +150,116 @@ function UPbPbAnalysis( r²⁰⁶Pb²³⁸U::Number, σ²⁰⁶Pb²³⁸U::Numbe
 end
 UPbPbAnalysis(μ::Vector{T}, Σ::Matrix{T}) where {T} = UPbPbAnalysis{T}(μ, sqrt.(diag(Σ)), Σ)
 
-ratioPbPb(age,λ235,λ238) = 1/R238_235.val*(exp(λ235*age)-1)/(exp(λ238*age)-1)
+ratioPbPb(age,λ235,λ238,uratio) = 1/uratio*(exp(λ235*age)-1)/(exp(λ238*age)-1)
 
 
 
-function age68(d::UPbPbAnalysis)
-    log(1 + d.μ[1] ± d.σ[1])/λ238U
+function age68(d::UPbPbAnalysis;decayconstant = :jaffey)
+    λ = 0
+    if decayconstant == :jaffey
+        λ = λ238U
+    elseif typeof(decayconstant) <: Number
+        λ = decayconstant
+    else
+        throw(ArgumentError("'$decayconstant' is not a valid argument for 'decayconstant', please refer to documentation for options"))
+    end
+    log(1 + d.μ[1] ± d.σ[1])/λ
 end
 
 
-function age76(d::UPbPbAnalysis,tmin,tmax)
+function age76(d::UPbPbAnalysis,tmin::AbstractFloat,tmax::AbstractFloat;decayconstant235 = :schoene, decayconstant238 =:jaffey, u235_238ratio = :hiess)
     
-    agefun(ages) = ratioPbPb.(ages,λ235U_jaffey.val,λ238U.val) .- d.μ[2]
+    λ235 = 0
+    if decayconstant235 == :jaffey
+        λ235 = λ235U_jaffey
+    elseif decayconstant235 == :schoene
+        λ235  = λ235U
+    elseif decayconstant235 == :schoene_internal
+        λ235  = λ235U_internal
+    elseif typeof(decayconstant235) <: Number
+        λ235 = decayconstant235
+    else
+        throw(ArgumentError("'$decayconstant235' is not a valid argument for 'decayconstant235', please refer to documentation for options"))
+    end
+
+    λ238 = 0
+    if decayconstant238 == :jaffey
+        λ238 = λ238U
+    elseif typeof(decayconstant238) <: Number
+        λ238 = decayconstant238
+    else
+        throw(ArgumentError("'$decayconstant238' is not a valid argument for 'decayconstant238', please refer to documentation for options"))
+    end
+
+    uratio = 0
+    
+    if u235_238ratio == :hiess
+        uratio = R238_235
+    elseif typeof(u235_238ratio) <: Number
+        uratio = u235_238ratio
+    else
+        throw(ArgumentError("'$u235_238ratio' is not a valid argument for 'u235_238ratio', please refer to documentation for options"))
+    end
+    
+    agefun(ages) = ratioPbPb.(ages,λ235.val,λ238.val,uratio.val) .- d.μ[2]
     sol = nlsolve(agefun,[tmin,tmax])
     return sol.zero[1]
     # r238_235*(d.μ[2]±d.σ[2])
+end
+
+function age(d::UPbPbAnalysis, tmin::AbstractFloat,tmax::AbstractFloat;decayconstant235 = :schoene, decayconstant238 =:jaffey, u235_238ratio = :hiess)
+    a68 = age68(d,decayconstant=decayconstant238)
+    a76 = age76(d,tmin,tmax, decayconstant235=decayconstant235, decayconstant238=decayconstant238, u235_238ratio=u235_238ratio)
+    return a68,a76
+end
+
+function concordia_age(d::UPbPbAnalysis, tmin::AbstractFloat,tmax::AbstractFloat;decayconstant235 = :schoene, decayconstant238 =:jaffey, u235_238ratio = :hiess)
+    λ235 = 0
+    if decayconstant235 == :jaffey
+        λ235 = λ235U_jaffey
+    elseif decayconstant235 == :schoene
+        λ235  = λ235U
+    elseif decayconstant235 == :schoene_internal
+        λ235  = λ235U_internal
+    elseif typeof(decayconstant235) <: Number
+        λ235 = decayconstant235
+    else
+        throw(ArgumentError("'$decayconstant235' is not a valid argument for 'decayconstant235', please refer to documentation for options"))
+    end
+
+    λ238 = 0
+    if decayconstant238 == :jaffey
+        λ238 = λ238U
+    elseif typeof(decayconstant238) <: Number
+        λ238 = decayconstant238
+    else
+        throw(ArgumentError("'$decayconstant238' is not a valid argument for 'decayconstant238', please refer to documentation for options"))
+    end
+
+    uratio = 0
+    if u235_238ratio == :hiess
+        uratio = R238_235
+    elseif typeof(u235_238ratio) <: Number
+        uratio = u235_238ratio
+    else
+        throw(ArgumentError("'$u235_238ratio' is not a valid argument for 'u235_238ratio', please refer to documentation for options"))
+    end
+    
+
+    function agefun(ages)
+        r86 = 1/d.μ[1]
+        r76 = d.μ[2]
+        vecfun(age) = [r86-1/ratio(age,λ238.val),r76 - ratioPbPb(age,λ235.val,λ238.val,uratio.val)]
+        
+        dot.(vecfun.(ages),fill(d.Σ,length(ages)),vecfun.(ages))
+    end
+
+    sol = nlsolve(agefun,[tmin,tmax])
+    return sol.zero[1]
+end
+
+function aitchison_discordance(d::UPbPbAnalysis,tmin::AbstractFloat,tmax::AbstractFloat;args...)
+    t68, t76 = age(d,tmin,tmax,args)
+    
+    dx = ratio()
 end
