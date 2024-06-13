@@ -1,7 +1,7 @@
 name = "Isoplot"
 uuid = "5adc30d5-9ddf-423c-bb15-ece697bec3ab"
 authors = ["C. Brenhin Keller <cbkeller@dartmouth.edu>"]
-version = "0.3.2"
+version = "0.3.5"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -9,6 +9,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 VectorizedStatistics = "3b853605-1c98-4422-8364-4bd93ee0529e"
 
 [weakdeps]
@@ -24,5 +25,6 @@ Distributions = "0.25"
 LoopVectorization = "0.12"
 Measurements = "2"
 Plots = "1"
+SpecialFunctions = "2"
 VectorizedStatistics = "0.5"
 julia = "1"
